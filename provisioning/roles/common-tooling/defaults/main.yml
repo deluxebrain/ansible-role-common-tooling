@@ -1,0 +1,7 @@
+---
+packages:
+  - jq
+
+# Installed for the user into Python3
+pip_packages:
+  - awscli

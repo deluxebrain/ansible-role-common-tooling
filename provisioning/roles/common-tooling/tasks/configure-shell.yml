@@ -1,0 +1,32 @@
+---
+- name: Set path to .bashrc
+  set_fact:
+    bashrc_path: "{{ ansible_env.HOME }}/.bashrc"
+  when: bashrc_path is undefined
+
+- name: Check .bashrc file exists
+  stat:
+    path: "{{ bashrc_path }}"
+  register: bashrc_path_stat
+
+- name: Configure python in shell
+  block:
+  - name: Create .pythonrc file
+    template:
+      src: .pythonrc.j2
+      dest: "{{ ansible_env.HOME }}/.pythonrc"
+      mode: "0644"
+
+  - name: Configure Python in .bashrc
+    blockinfile:
+      dest: "{{ bashrc_path }}"
+      marker: "# {mark} ANSIBLE MANAGED BLOCK: python"
+      block: |
+        if [ -f "$HOME/.pythonrc" ]; then
+          source "$HOME/.pythonrc"
+        fi
+  when: >-
+    bashrc_path_stat.stat.exists
+    and pip_packages is defined
+    and pip_packages is not none
+    and pip_packages|length

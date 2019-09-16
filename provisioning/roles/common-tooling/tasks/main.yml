@@ -1,0 +1,30 @@
+---
+- name: Load variables for the target system
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_os_family | lower }}.yml"
+    - default.yml
+
+- name: Set apt to use https
+  become: yes
+  apt:
+    name: apt-transport-https
+    state: present
+
+- name: Install system python
+  become: yes
+  package:
+    name: "{{ item }}"
+    state: present
+  register: result
+  retries: 3
+  until: result is succeeded
+  with_items: "{{ system_python_packages }}"
+  when: >-
+    pip_packages is defined
+    and pip_packages is not none
+    and pip_packages|length
+
+- include_tasks: install-packages.yml
+
+- include_tasks: configure-shell.yml

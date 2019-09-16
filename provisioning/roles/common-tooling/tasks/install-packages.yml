@@ -1,0 +1,25 @@
+---
+- name: Install packages
+  become: yes
+  package:
+    name: "{{ item }}"
+    state: present
+  register: result
+  retries: 3
+  until: result is succeeded
+  with_items: "{{ packages }}"
+  when: >-
+    packages is defined
+    and packages is not none
+    and packages|length
+
+- name: Install pip packages into system python
+  pip:
+    name: "{{ pip_packages }}"
+    extra_args: --user
+  environment:
+      PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+  when: >-
+    pip_packages is defined
+    and pip_packages is not none
+    and pip_packages|length
